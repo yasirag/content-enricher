@@ -1,28 +1,20 @@
-
+# Secretos
 .env
 .env.local
-.env.*.local
 
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
 .Python
 
+# Virtual env
 venv/
 env/
-ENV/
-env.bak/
-venv.bak/
+.venv/
 
-.pytest_cache/
-.coverage
-htmlcov/
-
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
+# OS
 .DS_Store
-Thumbs.db
