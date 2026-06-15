@@ -3,7 +3,6 @@ from typing import Dict
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-
 class ContentEnricher:
     """
     Enriquece contenido usando Google Gemini.
