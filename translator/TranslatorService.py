@@ -1,16 +1,135 @@
+import logging
 from deep_translator import GoogleTranslator
+from typing import Dict
 
+logger = logging.getLogger(__name__)
 
-
-
-#print(translate_text("mira que bonito todo", "es","en"))
 
 class TranslatorService:
+
+    # Obtener idiomas soportados dinámicamente
+    SUPPORTED_LANGUAGES = GoogleTranslator().get_supported_languages()
+
     def __init__(self):
-        pass
-    def translate_text(self, text:str, source_lang: str, target_lang:str):
+
+        logger.info("TranslatorService inicializado")
+
+    @staticmethod
+    def search_languages(query: str) -> Dict[int, str]:
+
+        query = query.lower().strip()
+
+        if len(query) == 0:
+            return {}
+
+        all_languages = GoogleTranslator().get_supported_languages()
+
+        matches = {}
+        counter = 1
+
+        for lang in all_languages:
+            if lang.startswith(query) or query in lang:
+                matches[counter] = lang
+                counter += 1
+
+        return matches
+
+    def _split_text(self, text: str, max_length: int = 4500) -> list:
+
+        if len(text) <= max_length:
+            return [text]
+
+        chunks = []
+        sentences = text.split('. ')
+        current_chunk = ""
+
+        for sentence in sentences:
+            if len(current_chunk) + len(sentence) <= max_length:
+                current_chunk += sentence + ". "
+            else:
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                current_chunk = sentence + ". "
+
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+
+        return chunks
+
+    def translate_text(self, text: str, source_lang: str, target_lang: str) -> Dict:
+
+        logger.info(f"Iniciando traducción: {source_lang} → {target_lang}")
+
+
+        if not text or text.strip() == "":
+            logger.warning("Intento de traducción con texto vacío")
+            return {
+                "exito": False,
+                "contenido_traducido": None,
+                "error": "El texto no puede estar vacío"
+            }
+
+
+        if not source_lang or not target_lang:
+            logger.warning("Idiomas no especificados")
+            return {
+                "exito": False,
+                "contenido_traducido": None,
+                "error": "Debe especificar idiomas origen y destino"
+            }
+
+
+        if source_lang != 'auto' and source_lang not in self.SUPPORTED_LANGUAGES:
+            logger.warning(f"Idioma origen no soportado: {source_lang}")
+            return {
+                "exito": False,
+                "contenido_traducido": None,
+                "error": f"Idioma '{source_lang}' no soportado"
+            }
+
+        if target_lang not in self.SUPPORTED_LANGUAGES:
+            logger.warning(f"Idioma destino no soportado: {target_lang}")
+            return {
+                "exito": False,
+                "contenido_traducido": None,
+                "error": f"Idioma '{target_lang}' no soportado"
+            }
+
+
         try:
-            translated_text = GoogleTranslator(source=source_lang, target=target_lang).translate(text)
-            return translated_text
+            translator = GoogleTranslator(source=source_lang, target=target_lang)
+
+
+            chunks = self._split_text(text)
+            translated_chunks = []
+
+            for i, chunk in enumerate(chunks):
+                logger.info(f"Traduciendo chunk {i + 1}/{len(chunks)} ({len(chunk)} chars)")
+                translated_chunk = translator.translate(chunk)
+                translated_chunks.append(translated_chunk)
+
+            translated_text = " ".join(translated_chunks)
+
+            logger.info(f"Traducción exitosa - Original: {len(text)} chars → Traducido: {len(translated_text)} chars")
+
+            return {
+                "exito": True,
+                "contenido_traducido": translated_text,
+                "error": None
+            }
+
+        except ConnectionError as e:
+            logger.error(f"Error de conexión: {str(e)}")
+            return {
+                "exito": False,
+                "contenido_traducido": None,
+                "error": "Error de conexión. Verifica tu conexión a internet"
+            }
+
         except Exception as e:
-            print("Unexpected error:", e)
+            logger.error(f"Error inesperado en traducción: {str(e)}")
+            return {
+                "exito": False,
+                "contenido_traducido": None,
+                "error": f"Error en traducción: {str(e)}"
+            }

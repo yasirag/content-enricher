@@ -14,6 +14,16 @@ class WikipediaScraper:
 
     def buscar(self) -> Dict:
         try:
+            # NUEVA VALIDACIÓN 1: Tema no vacío
+            if not self.tema or self.tema.strip() == "":
+                return {
+                    "exito": False,
+                    "titulo": None,
+                    "contenido": None,
+                    "url": None,
+                    "error": "El tema no puede estar vacío"
+                }
+
 
             url = self._construir_url(self.tema)
             html = self._descargar_html(url)
@@ -28,7 +38,15 @@ class WikipediaScraper:
                 "url": url,
                 "error": None
             }
+        except ConnectionError as e:
 
+            return {
+                "exito": False,
+                "titulo": None,
+                "contenido": None,
+                "url": None,
+                "error": f"Error de conexión: {str(e)}"
+            }
         except Exception as e:
             return {
                 "exito": False,
@@ -37,8 +55,6 @@ class WikipediaScraper:
                 "url": None,
                 "error": str(e)
             }
-
-
     def _construir_url(self, tema: str) -> str:
         tema_encoded = quote(tema.replace(" ", "_"), safe="")
         url = f"{self.base_url}/{tema_encoded}"
