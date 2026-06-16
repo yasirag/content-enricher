@@ -24,13 +24,9 @@ class WikipediaScraper:
                     "error": "El tema no puede estar vacío"
                 }
 
-            # Código actual
+
             url = self._construir_url(self.tema)
             html = self._descargar_html(url)
-
-            # NUEVA VALIDACIÓN 2: Status code
-            # Necesitamos verificar que la respuesta fue exitosa
-
             soup = BeautifulSoup(html, "html.parser")
             titulo = self._extraer_titulo(soup)
             contenido = self._extraer_contenido(soup)
@@ -43,7 +39,7 @@ class WikipediaScraper:
                 "error": None
             }
         except ConnectionError as e:
-            # NUEVA VALIDACIÓN 3: Manejar error de conexión específicamente
+
             return {
                 "exito": False,
                 "titulo": None,

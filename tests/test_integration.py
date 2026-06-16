@@ -112,7 +112,7 @@ class TestIntegration:
             "english"
         )
 
-        # ASSERT
+       
         assert resultado_scraper["exito"] == True
         assert resultado_enricher["exito"] == True
         assert resultado_traduccion["exito"] == True
